@@ -1,0 +1,33 @@
+
+{% extends 'base.html' %}
+{% block content %}
+        
+    <h1>Student Placement Tracker</h1>
+
+    <p>welcome, {{name}}!</p>
+    <div class="card">
+        <h3>Placement Overview</h3>
+        <p>Applications: {{applications_count}}</p>
+        <p>Interviews: {{interviews_count}}</p>
+    </div>
+    <div class="card">
+            <h3>Skills Overview</h3>
+        {% if skills %}
+        <ul>
+            {% for skill in skills %}
+                <li>{{skill.name}}</li>
+                
+            {% endfor %}
+        </ul>
+            
+        {% else %}
+            
+            <p>No skills added yet</p>
+            
+        {% endif %}
+            
+    </div>
+    
+{% endblock %}
+    
+    

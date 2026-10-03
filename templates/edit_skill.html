@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h1>Edit Skill</h1>
+
+<form method="POST">
+
+    <label>Skill Name</label>
+    <input
+        type="text"
+        name="skill_name"
+        value="{{ skill.name }}"
+    >
+
+    <label>Category</label>
+    <input
+        type="text"
+        name="category"
+        value="{{ skill.category }}"
+    >
+
+    <label>Level</label>
+    <select name="level">
+
+        <option value="Beginner"
+            {% if skill.level == "Beginner" %}selected{% endif %}>
+            Beginner
+        </option>
+
+        <option value="Intermediate"
+            {% if skill.level == "Intermediate" %}selected{% endif %}>
+            Intermediate
+        </option>
+
+        <option value="Advanced"
+            {% if skill.level == "Advanced" %}selected{% endif %}>
+            Advanced
+        </option>
+
+    </select>
+
+    <button type="submit">Update Skill</button>
+
+</form>
+
+{% endblock %}
