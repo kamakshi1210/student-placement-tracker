@@ -1,5 +1,6 @@
 from flask import Flask, request,render_template,redirect,url_for
 from flask_sqlalchemy import SQLAlchemy
+from datetime import date
 
 app=Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///placement_tracker.db"
@@ -10,6 +11,14 @@ class Skill(db.Model):
     name = db.Column(db.String(100), nullable=False)
     category = db.Column(db.String(100), nullable=False)
     level = db.Column(db.String(50), nullable=False)
+
+class Application(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    company = db.Column(db.String(100), nullable=False)
+    role = db.Column(db.String(100), nullable=False)
+    status = db.Column(db.String(50), nullable=False)
+    application_date = db.Column(db.Date, nullable=False)
+    notes = db.Column(db.Text)
 
 
 @app.route("/")
@@ -75,7 +84,62 @@ def delete_skill(skill_id):
 
 @app.route("/applications")
 def applications():
-    return render_template("applications.html")
+    applications = Application.query.all()
+    return render_template(
+        "applications.html",
+        applications=applications
+    )
+
+@app.route("/add-application", methods=["GET", "POST"])
+def add_application():
+    if request.method == "POST":
+        company = request.form["company"]
+        role = request.form["role"]
+        status = request.form["status"]
+        application_date = date.fromisoformat(request.form["application_date"])
+        notes = request.form["notes"]
+
+        application = Application(
+            company=company,
+            role=role,
+            status=status,
+            application_date=application_date,
+            notes=notes
+        )
+        db.session.add(application)
+        db.session.commit()
+        return redirect(url_for("applications"))
+    
+    return render_template("add_application.html")
+
+@app.route("/applications/edit/<int:application_id>", methods=["GET", "POST"])
+def edit_application(application_id):
+    application = db.get_or_404(Application, application_id)
+    if request.method == "POST":
+        application.company = request.form["company"]
+        application.role = request.form["role"]
+        application.status = request.form["status"]
+        application.application_date = date.fromisoformat(
+            request.form["application_date"]
+        )
+        application.notes = request.form["notes"]
+
+        db.session.commit()
+        return redirect(url_for("applications"))
+
+    return render_template(
+        "edit_application.html",
+        application=application
+    )
+
+@app.route("/applications/delete/<int:application_id>")
+def delete_application(application_id):
+    application = db.get_or_404(Application, application_id)
+
+    db.session.delete(application)
+    db.session.commit()
+
+    return redirect(url_for("applications"))
 
 if __name__=="__main__":
     with app.app_context():

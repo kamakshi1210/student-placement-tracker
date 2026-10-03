@@ -1,6 +1,37 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
+
 {% block content %}
-    <h1>My Applications</h1>
-    <p>Track the companies you have applied to.</p>
-    
-{% endblock  %}
+
+<h1>Job Applications</h1>
+
+{% if applications %}
+
+    {% for application in applications %}
+
+        <div>
+            <h3>{{ application.company }}</h3>
+
+            <p>Role: {{ application.role }}</p>
+            <p>Status: {{ application.status }}</p>
+            <p>Date: {{ application.application_date }}</p>
+            <p>Notes: {{ application.notes }}</p>
+            <a href="{{ url_for('edit_application', application_id=application.id) }}">
+                Edit
+            </a>
+            -
+            <a href="{{ url_for('delete_application', application_id=application.id) }}">
+                Delete
+            </a>
+        </div>
+
+        <hr>
+
+    {% endfor %}
+
+{% else %}
+
+    <p>No job applications found.</p>
+
+{% endif %}
+
+{% endblock %}
