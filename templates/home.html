@@ -7,9 +7,67 @@
     <p>welcome, {{name}}!</p>
     <div class="card">
         <h3>Placement Overview</h3>
-        <p>Applications: {{applications_count}}</p>
-        <p>Interviews: {{interviews_count}}</p>
+        <div class="total-applications">
+            <h4>Total Applications</h4>
+            <p>{{ applications_count }}</p>
+        </div>
     </div>
+
+    <div class="card">
+        <h3>Application Status</h3>
+        <div class="stats-container">
+            <div class="stat-card">
+                <h4>Applied</h4>
+                <p>{{ applied_count }}</p>
+            </div>
+            <div class="stat-card">
+                <h4>Online Assessment</h4>
+                <p>{{ assessment_count }}</p>
+            </div>
+            <div class="stat-card">
+                <h4>Interviews</h4>
+                <p>{{ interviews_count }}</p>
+            </div>
+            <div class="stat-card">
+                <h4>Shortlisted</h4>
+                <p>{{ shortlisted_count }}</p>
+            </div>
+            <div class="stat-card">
+                <h4>Selected</h4>
+                <p>{{ selected_count }}</p>
+            </div>
+            <div class="stat-card">
+                <h4>Rejected</h4>
+                <p>{{ rejected_count }}</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3>Recent Applications</h3>
+        {% if recent_applications %}
+            {% for application in recent_applications %}
+                <div class="application-item">
+                    <h4>
+                        <a href="{{ url_for('edit_application', application_id=application.id) }}">
+                            {{ application.company }}
+                        </a>
+                    </h4>
+                    <p>Role: {{ application.role }}</p>
+                    <p>Status: {{ application.status }}</p>
+                    <p>Date: {{ application.application_date }}</p>
+                </div>
+                <hr>
+            {% endfor %}
+        {% else %}
+            <p>No applications yet.</p>
+        {% endif %}
+        <a href="{{ url_for('applications') }}">
+            View All Applications
+        </a>
+
+    </div>
+
     <div class="card">
             <h3>Skills Overview</h3>
         {% if skills %}

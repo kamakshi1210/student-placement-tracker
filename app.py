@@ -23,12 +23,30 @@ class Application(db.Model):
 
 @app.route("/")
 def home():
-    name="prithvi"
-    skills=Skill.query.all()
-    interviews_count=4
-    applications_count=12
-    return render_template("home.html",name=name,skills=skills,interviews_count=interviews_count,applications_count=applications_count)
+    applications = Application.query.all()
+    skills = Skill.query.all()
+    applications_count = len(applications)
+    interviews_count = Application.query.filter_by(status="Interview").count()
+    rejected_count = Application.query.filter_by(status="Rejected").count()
+    applied_count = Application.query.filter_by(status="Applied").count()
+    assessment_count = Application.query.filter_by(status="Online Assessment").count()
+    shortlisted_count = Application.query.filter_by(status="Shortlisted").count()
+    selected_count = Application.query.filter_by(status="Selected").count()
+    recent_applications = Application.query.order_by(Application.application_date.desc()).limit(5).all()
 
+    return render_template(
+        "home.html",
+        name="Kamakshi",
+        applications_count=applications_count,
+        interviews_count=interviews_count,
+        rejected_count=rejected_count,
+        applied_count=applied_count,
+        assessment_count=assessment_count,
+        shortlisted_count=shortlisted_count,
+        selected_count=selected_count,
+        skills=skills,
+        recent_applications=recent_applications
+    )
 
 
 @app.route("/add_skill",methods=["GET","POST"])
@@ -96,9 +114,20 @@ def add_application():
         company = request.form["company"]
         role = request.form["role"]
         status = request.form["status"]
-        application_date = date.fromisoformat(request.form["application_date"])
+        raw_date = request.form.get("application_date", "").strip()
         notes = request.form["notes"]
+        if company == "":
+            return "company name cannot be empty."
+        if status not in ["Applied","Online Assessment","Interview","Shortlisted","Rejected","Selected"]:
+            return "invalid status"
+        if not raw_date:
+            return "Application date cannot be empty.", 400
 
+        # Safely attempt date parsing
+        try:
+            application_date = date.fromisoformat(raw_date)
+        except ValueError:
+            return "Invalid date format. Expected YYYY-MM-DD.", 400
         application = Application(
             company=company,
             role=role,
@@ -115,6 +144,8 @@ def add_application():
 @app.route("/applications/edit/<int:application_id>", methods=["GET", "POST"])
 def edit_application(application_id):
     application = db.get_or_404(Application, application_id)
+    if application is None:
+        return "Application not found", 404
     if request.method == "POST":
         application.company = request.form["company"]
         application.role = request.form["role"]
@@ -135,6 +166,8 @@ def edit_application(application_id):
 @app.route("/applications/delete/<int:application_id>")
 def delete_application(application_id):
     application = db.get_or_404(Application, application_id)
+    if application is None:
+        return "appliation not found", 404
 
     db.session.delete(application)
     db.session.commit()
