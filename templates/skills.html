@@ -6,11 +6,11 @@
         {% for skill in skills %}
             <li>
                 {{skill.name}}-{{ skill.category }}-{{skill.level}}-
-                <a href="{{ url_for('edit_skill', skill_id=skill.id) }}">
+                <a href="{{ url_for('skills.edit_skill', skill_id=skill.id) }}">
                     Edit
                 </a>
                 -
-                <a href="{{ url_for('delete_skill', skill_id=skill.id) }}">
+                <a href="{{ url_for('skills.delete_skill', skill_id=skill.id) }}">
                     Delete
                 </a>
 

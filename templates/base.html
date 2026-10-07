@@ -8,12 +8,12 @@
 </head>
 <body>
     <nav>
-        <a href="{{url_for('home')}}">Home</a>
-        <a href="{{url_for('skills')}}">Skills</a>
-        <a href="{{ url_for('add_skill') }}">Add Skill</a>
-        <a href="{{url_for('applications')}}">Applications</a>
-        <a href="{{ url_for('add_application') }}">Add Application</a>
-        <a href="{{ url_for('logout') }}">Logout</a>
+        <a href="{{url_for('main.home')}}">Home</a>
+        <a href="{{url_for('skills.skills')}}">Skills</a>
+        <a href="{{ url_for('skills.add_skill') }}">Add Skill</a>
+        <a href="{{url_for('applications.applications')}}">Applications</a>
+        <a href="{{ url_for('applications.add_application') }}">Add Application</a>
+        <a href="{{ url_for('auth.logout') }}">Logout</a>
     </nav>
     <main>
         {% block content %}
