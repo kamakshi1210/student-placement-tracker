@@ -1,4 +1,8 @@
-from flask import Blueprint, request, render_template, redirect, url_for, session
+
+from flask import (
+    Blueprint, request, render_template,
+    redirect, url_for, session, flash
+)
 from datetime import date
 
 from . import db
@@ -6,38 +10,61 @@ from .models import Application
 
 applications_bp = Blueprint("applications", __name__)
 
+VALID_STATUSES = [
+    "Applied",
+    "Online Assessment",
+    "Interview",
+    "Shortlisted",
+    "Rejected",
+    "Selected"
+]
+
+
+def logged_in():
+    return "user_id" in session
+
+
 @applications_bp.route("/applications")
 def applications():
-    if "user_id" not in session:
+    if not logged_in():
         return redirect(url_for("auth.login"))
-    applications = Application.query.filter_by(user_id=session["user_id"]).all()
+
+    applications = Application.query.filter_by(
+        user_id=session["user_id"]
+    ).all()
+
     return render_template(
         "applications.html",
         applications=applications
     )
 
+
 @applications_bp.route("/add-application", methods=["GET", "POST"])
 def add_application():
-    if "user_id" not in session:
+    if not logged_in():
         return redirect(url_for("auth.login"))
-    if request.method == "POST":
-        company = request.form["company"]
-        role = request.form["role"]
-        status = request.form["status"]
-        raw_date = request.form.get("application_date", "").strip()
-        notes = request.form["notes"]
-        if company == "":
-            return "company name cannot be empty."
-        if status not in ["Applied","Online Assessment","Interview","Shortlisted","Rejected","Selected"]:
-            return "invalid status"
-        if not raw_date:
-            return "Application date cannot be empty.", 400
 
-        # Safely attempt date parsing
+    if request.method == "POST":
+        company = request.form.get("company", "").strip()
+        role = request.form.get("role", "").strip()
+        status = request.form.get("status", "").strip()
+        raw_date = request.form.get("application_date", "").strip()
+        notes = request.form.get("notes", "").strip()
+
+        if not company or not role:
+            flash("Company name and role cannot be empty.", "error")
+            return redirect(url_for("applications.add_application"))
+
+        if status not in VALID_STATUSES:
+            flash("Please select a valid application status.", "error")
+            return redirect(url_for("applications.add_application"))
+
         try:
             application_date = date.fromisoformat(raw_date)
         except ValueError:
-            return "Invalid date format. Expected YYYY-MM-DD.", 400
+            flash("Please enter a valid application date.", "error")
+            return redirect(url_for("applications.add_application"))
+
         application = Application(
             company=company,
             role=role,
@@ -46,45 +73,68 @@ def add_application():
             notes=notes,
             user_id=session["user_id"]
         )
+
         db.session.add(application)
         db.session.commit()
+
+        flash("Application added successfully!", "success")
         return redirect(url_for("applications.applications"))
-    
+
     return render_template("add_application.html")
 
-@applications_bp.route("/applications/edit/<int:application_id>", methods=["GET", "POST"])
+
+@applications_bp.route(
+    "/applications/edit/<int:application_id>",
+    methods=["GET", "POST"]
+)
 def edit_application(application_id):
-    if "user_id" not in session:
+    if not logged_in():
         return redirect(url_for("auth.login"))
-    application = Application.query.filter_by(id=application_id,user_id=session["user_id"]).first_or_404()
-    if application is None:
-        return "Application not found", 404
+
+    application = Application.query.filter_by(
+        id=application_id,
+        user_id=session["user_id"]
+    ).first_or_404()
+
     if request.method == "POST":
-        company = request.form["company"].strip()
-        role = request.form["role"].strip()
+        company = request.form.get("company", "").strip()
+        role = request.form.get("role", "").strip()
+        status = request.form.get("status", "").strip()
+        raw_date = request.form.get("application_date", "").strip()
+        notes = request.form.get("notes", "").strip()
 
-        if company == "":
-            return "Company name cannot be empty.", 400
+        if not company or not role:
+            flash("Company name and role cannot be empty.", "error")
+            return redirect(url_for(
+                "applications.edit_application",
+                application_id=application.id
+            ))
 
-        if role == "":
-            return "Role cannot be empty.", 400
+        if status not in VALID_STATUSES:
+            flash("Please select a valid application status.", "error")
+            return redirect(url_for(
+                "applications.edit_application",
+                application_id=application.id
+            ))
+
+        try:
+            application_date = date.fromisoformat(raw_date)
+        except ValueError:
+            flash("Please enter a valid application date.", "error")
+            return redirect(url_for(
+                "applications.edit_application",
+                application_id=application.id
+            ))
 
         application.company = company
         application.role = role
-        status = request.form["status"]
-        if status not in ["Applied", "Online Assessment", "Interview", "Shortlisted", "Rejected", "Selected"]:
-            return "Invalid status.", 400
         application.status = status
-        raw_date = request.form.get("application_date", "").strip()
-        if not raw_date:
-            return "Application date cannot be empty.", 400
-        try:
-            application.application_date = date.fromisoformat(raw_date)
-        except ValueError:
-            return "Invalid date format. Expected YYYY-MM-DD.", 400
-        application.notes = request.form["notes"]
+        application.application_date = application_date
+        application.notes = notes
 
         db.session.commit()
+
+        flash("Application updated successfully!", "success")
         return redirect(url_for("applications.applications"))
 
     return render_template(
@@ -92,15 +142,19 @@ def edit_application(application_id):
         application=application
     )
 
+
 @applications_bp.route("/applications/delete/<int:application_id>")
 def delete_application(application_id):
-    if "user_id" not in session:
+    if not logged_in():
         return redirect(url_for("auth.login"))
-    application = Application.query.filter_by(id=application_id,user_id=session["user_id"]).first_or_404()
-    if application is None:
-        return "appliation not found", 404
+
+    application = Application.query.filter_by(
+        id=application_id,
+        user_id=session["user_id"]
+    ).first_or_404()
 
     db.session.delete(application)
     db.session.commit()
 
+    flash("Application deleted successfully!", "success")
     return redirect(url_for("applications.applications"))

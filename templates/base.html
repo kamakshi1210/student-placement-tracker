@@ -15,11 +15,21 @@
         <a href="{{ url_for('applications.add_application') }}">Add Application</a>
         <a href="{{ url_for('auth.logout') }}">Logout</a>
     </nav>
-    <main>
-        {% block content %}
-        
-        {% endblock %}
-    </main>
+    
+<main>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="flash-message {{ category }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+</main>
+
     
 </body>
 </html>

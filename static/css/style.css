@@ -79,3 +79,22 @@ h1{
 .application-item a:hover {
     text-decoration: underline;
 }
+
+
+.flash-message {
+    padding: 12px;
+    margin: 12px 0;
+    border-radius: 6px;
+    background-color: #e8f4fd;
+    color: #174a70;
+}
+
+.flash-message.success {
+    background-color: #e7f6e7;
+    color: #216b2a;
+}
+
+.flash-message.error {
+    background-color: #fde8e8;
+    color: #922b2b;
+}
