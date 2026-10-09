@@ -13,7 +13,13 @@ def create_app():
     if not secret_key:
         raise ValueError("SECRET_KEY is not set.")
     app.secret_key = secret_key
-    app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL")
+    database_url = os.getenv("DATABASE_URL")
+
+    if database_url and database_url.startswith("postgres://"):
+        database_url = database_url.replace("postgres://", "postgresql://", 1)
+
+    app.config["SQLALCHEMY_DATABASE_URI"] = database_url
+
     db.init_app(app)
     from .auth import auth
     from .skills import skills_bp
